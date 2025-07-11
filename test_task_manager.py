@@ -1,7 +1,7 @@
 # test_task_manager.py
 import os
 import pytest
-from test_task_manager import load_tasks, save_tasks
+from Main import load_tasks, save_tasks
 
 def test_load_and_save_tasks(tmp_path):
     """Test JSON save/load functionality."""
