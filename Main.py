@@ -1,73 +1,99 @@
-tasks = []
+import json
+from typing import List, Dict, Optional
 
-#prompt to add a task
-def create_tasks():
-    title = input("Enter your task title: ")
-    description = input("Enter your task description: ")
-    tasks.append({"Task title": title, "Task Description": description})
-    print("Task created successfully")
-#See tasks
-def see_tasks():
-    if tasks:
-        print("Available tasks: ")
-        for idx, task in enumerate(tasks, start=1):
-            print(f"{idx}. Task title: {task['Task title']}, Task Description: {task['Task Description']}")
+# File to store tasks
+TASKS_FILE = "tasks.json"
+
+def load_tasks() -> List[Dict[str, str]]:
+    """Load tasks from JSON file. Return empty list if file doesn't exist."""
+    try:
+        with open(TASKS_FILE, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+def save_tasks(tasks: List[Dict[str, str]]) -> None:
+    """Save tasks to JSON file."""
+    with open(TASKS_FILE, "w") as f:
+        json.dump(tasks, f, indent=2)
+
+def create_task(tasks: List[Dict[str, str]]) -> None:
+    """Add a new task."""
+    title = input("Enter task title: ").strip()
+    description = input("Enter task description: ").strip()
+    tasks.append({"title": title, "description": description})
+    save_tasks(tasks)
+    print("✅ Task added!")
+
+def view_tasks(tasks: List[Dict[str, str]]) -> None:
+    """Display all tasks."""
+    if not tasks:
+        print("No tasks found.")
+        return
+    for idx, task in enumerate(tasks, 1):
+        print(f"{idx}. {task['title']}: {task['description']}")
+
+def update_task(tasks: List[Dict[str, str]]) -> None:
+    """Update an existing task."""
+    view_tasks(tasks)
+    if not tasks:
+        return
+    try:
+        task_idx = int(input("Enter task number to update: ")) - 1
+        if 0 <= task_idx < len(tasks):
+            new_title = input("New title (press Enter to keep current): ").strip()
+            new_desc = input("New description (press Enter to keep current): ").strip()
+            if new_title:
+                tasks[task_idx]["title"] = new_title
+            if new_desc:
+                tasks[task_idx]["description"] = new_desc
+            save_tasks(tasks)
+            print("✅ Task updated!")
         else:
-            print("No tasks available")
-#update tasks
-def update_tasks():
-    see_tasks()
-    if tasks: 
-        tasks_index = int(input("Provide the index of your task to be update: "))-1
-        if 0 <= tasks_index < len(tasks):
-            new_task_title = input("Provide me a title or press enter to keep current title: ")
-            new_task_description = input("Provide me a description or press enter to keep current description: ")        
-            if new_task_title:  ""
-            tasks[tasks_index]['task title'] = new_task_title
-            if new_task_description: ""
-            tasks[tasks_index]['task description'] = new_task_description
-            print("Task updated")
+            print("❌ Invalid task number.")
+    except ValueError:
+        print("❌ Please enter a valid number.")
+
+def delete_task(tasks: List[Dict[str, str]]) -> None:
+    """Delete a task."""
+    view_tasks(tasks)
+    if not tasks:
+        return
+    try:
+        task_idx = int(input("Enter task number to delete: ")) - 1
+        if 0 <= task_idx < len(tasks):
+            deleted_task = tasks.pop(task_idx)
+            save_tasks(tasks)
+            print(f"✅ Deleted: {deleted_task['title']}")
         else:
-            print("ERROR INVALID INDEX")
-            
-    else:
-        
-        print("No tasks available")
-#delete tasks
-def delete_tasks():
-    see_tasks()
-    if tasks: 
-        tasks_index = int(input("Provide the index of the task to be deleted: ")) -1 
-        if 0 <= tasks_index < len(tasks):
-            deleted_task = tasks.pop(tasks_index)
-            print(f"task ' {deleted_task['Task title']}' Deleted successfully")
+            print("❌ Invalid task number.")
+    except ValueError:
+        print("❌ Please enter a valid number.")
+
+def main() -> None:
+    """Main CLI loop."""
+    tasks = load_tasks()
+    while True:
+        print("\n===== Task Manager =====")
+        print("1. Add Task")
+        print("2. View Tasks")
+        print("3. Update Task")
+        print("4. Delete Task")
+        print("5. Exit")
+        choice = input("Choose an option (1-5): ").strip()
+        if choice == "1":
+            create_task(tasks)
+        elif choice == "2":
+            view_tasks(tasks)
+        elif choice == "3":
+            update_task(tasks)
+        elif choice == "4":
+            delete_task(tasks)
+        elif choice == "5":
+            print("👋 Goodbye!")
+            break
         else:
-            print("Invalid index")
-    else: 
-        print("No tasks available")
+            print("❌ Invalid option. Please choose 1-5.")
 
-
-#Menu
-while True: 
-    print("1. Add Task")
-    print("2. View Task")
-    print("3. Update Task")
-    print("4. Delete Task")
-    print("5. Exit")
-
-    choice = input("Select an option from (1-5): ")
-
-    if choice == ('1'): 
-        create_tasks()
-    elif choice ==('2'):
-        see_tasks()
-    elif choice==('3'):
-        update_tasks()
-    elif choice == ('4'):
-        delete_tasks()
-    elif choice == ('5'):
-        print("Exiting from task manager...")
-        break
-    else:
-        print("Invalid option. Please select between 1 and 5")
-
+if __name__ == "__main__":
+    main()
